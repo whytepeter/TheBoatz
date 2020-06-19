@@ -57,7 +57,7 @@ class Logic {
         boat.returnTime = hour
       }
     })
-    Logic.allBoats()
+
     Logic.getAvailableBoats()
     console.log(Logic.allBoats())
   }

@@ -185,8 +185,8 @@ class Logic {
           UI.updateBoatInfo(selectedBoat)
 
           //update Report Info
-          Logic.updateReport(boatPrice, hour, 1)
-          UI.updateReportUI(Logic.report())
+          let report = Logic.updateReport(boatPrice, hour, 1)
+          UI.updateReportUI(report)
 
           console.log(`${name} has been hired for $${boatPrice}`)
           UI.alert("success", `${name} has been hired for $${boatPrice}`)

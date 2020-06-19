@@ -259,6 +259,19 @@ class UI {
     infoList.classList.add("display")
   }
 
+  static checkAbout() {
+    const boatsEl = Array.from(document.querySelectorAll(".boat"))
+    boatsEl.forEach((boat) => {
+      boat.addEventListener("mouseover", () => {
+        if (boat.className.includes("notAvailable")) {
+          UI.alert("about", `${boat.textContent} is not available`)
+        } else {
+          UI.alert("about", `${boat.textContent} is  available`)
+        }
+      })
+    })
+  }
+
   static alert(type, message) {
     const alerts = Array.from(document.querySelectorAll(".alerts"))
     alerts.forEach((alert) => {
@@ -333,6 +346,9 @@ const start = () => {
   btn.addEventListener("click", () => {
     Logic.hireBoat()
   })
+
+  //hover event
+  UI.checkAbout()
 }
 
 //start the day

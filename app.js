@@ -1,10 +1,18 @@
 // Boat constructor
 class Boat {
-  constructor(name, boatNumber, isAvailable = true, price = 0, returnTime) {
+  constructor(
+    name,
+    boatNumber,
+    isAvailable = true,
+    price = 0,
+    startTime,
+    returnTime
+  ) {
     this.name = name
     this.boatNumber = boatNumber
     this.isAvailable = isAvailable
     this.price = price
+    this.startTime = startTime
     this.returnTime = returnTime
   }
 }
@@ -12,9 +20,21 @@ class Boat {
 // Data class
 class Logic {
   static report() {
-    let totalBaotsHired = 0
-    let totalHours = 0
-    let totalMoney = 0
+    return {
+      totalBaotsHired: 0,
+      totalHours: 0,
+      totalMoney: 0,
+    }
+  }
+
+  static updateReport(newMoney, newHours, newBoatHired) {
+    const report = Logic.report()
+    report.totalMoney += newMoney
+    report.totalHours += newHours
+    report.totalBaotsHired += newBoatHired
+
+    console.log(Logic.report())
+    return report
   }
 
   static allBoats() {
@@ -49,12 +69,13 @@ class Logic {
     return boats
   }
 
-  static updateBoatInfo(hiredBoat, price, hour) {
+  static updateBoatInfo(hiredBoat, price, hireTime, returnTime) {
     Logic.allBoats().forEach((boat) => {
       if (boat.name === hiredBoat.name) {
         boat.isAvailable = false
         boat.price = price
-        boat.returnTime = hour
+        boat.startTime = hireTime
+        boat.returnTime = returnTime
       }
     })
 
@@ -81,6 +102,32 @@ class Logic {
       select,
       message,
     }
+  }
+
+  static getReturnTime(startHour) {
+    let returnHour = parseInt(startHour) + hour
+    switch (returnHour) {
+      case 13:
+        returnHour = 1
+        break
+      case 14:
+        returnHour = 2
+        break
+      case 15:
+        returnHour = 3
+        break
+      case 16:
+        returnHour = 4
+        break
+      case 17:
+        returnHour = 5
+        break
+      default:
+        returnHour
+    }
+
+    let returnTime = `${returnHour}:${min}${sec}`
+    return returnTime
   }
 
   static getPrice(hour) {
@@ -121,34 +168,36 @@ class Logic {
         console.log(check.message)
         //get the price
         hour = prompt(`Max hour = ${hoursLeft()}, Min hour = 1/2`)
-        if (hour) {
-          let price = Logic.getPrice(hour)
-          if (price.isTrue) {
-            boatPrice = price.mainPrice
 
-            // update boat logic info
-            selectedBoat.isAvailable = false
-            selectedBoat.price = boatPrice
-            selectedBoat.returnTime = hour
+        let price = Logic.getPrice(hour)
+        if (price.isTrue) {
+          boatPrice = price.mainPrice
+          const timeHired = timer()
+          const returnTime = Logic.getReturnTime(hour)
+          // update boat logic info
+          selectedBoat.isAvailable = false
+          selectedBoat.price = boatPrice
+          selectedBoat.startTime = timeHired
+          selectedBoat.returnTime = returnTime
+          Logic.updateBoatInfo(selectedBoat, boatPrice, timeHired, returnTime)
 
-            Logic.updateBoatInfo(selectedBoat, boatPrice, hour)
+          //update the ui info
+          UI.updateBoatInfo(selectedBoat)
 
-            //update the ui info
-            UI.updateBoatInfo(selectedBoat)
+          //update Report Info
+          Logic.updateReport(boatPrice, hour, 1)
+          UI.updateReportUI(Logic.report())
 
-            console.log(`${name} has been hired for $${boatPrice}`)
-            UI.alert("success", `${name} has been hired for $${boatPrice}`)
-          } else {
-            console.log(price.message)
-            UI.alert("error", price.message)
-          }
+          console.log(`${name} has been hired for $${boatPrice}`)
+          UI.alert("success", `${name} has been hired for $${boatPrice}`)
+        } else {
+          console.log(price.message)
+          UI.alert("error", price.message)
         }
       }
     }
   }
 }
-
-// console.log(Data.getAvailableBoats())
 
 //Ui class
 class UI {
@@ -167,9 +216,10 @@ class UI {
     id = hiredBoat.boatNumber
     const html = `<li id="${id}" >
     <p class="info-title">Name : <span >${hiredBoat.name.toUpperCase()}</span></p>
+    <p class="info-title">Hired Time: <span >${hiredBoat.startTime}</span></p>
     <p class="info-title">Return Time: <span  >${
       hiredBoat.returnTime
-    }hr</span></p>
+    }</span></p>
     <p class="info-title">Amount Paid <span id="">$${hiredBoat.price}</span></p>
   </li>`
 
@@ -190,6 +240,25 @@ class UI {
     //update boats available count
     UI.AvailableBoat()
   }
+
+  //update theReport info
+  static updateReportUI(report) {
+    let infoList = document.querySelector(".info-left")
+
+    const html = `
+    <p class="info-title info-title--main">Full Report</p>
+        <p class="info-title">Number Boats of Hired: <span id="total-boat-hire">${report.totalBaotsHired}</span></p>
+        <p class="info-title">Total Number of Hours: <span id="total-hour">${report.totalHours}hr</span></p>
+        <p class="info-title">End of Day Money: <span id="total-money">$${report.totalMoney}</span></p>
+    `
+
+    //append new report to HTMl
+    infoList.innerHTML = html
+
+    //add display class
+    infoList.classList.add("display")
+  }
+
   static alert(type, message) {
     const alerts = Array.from(document.querySelectorAll(".alerts"))
     alerts.forEach((alert) => {
@@ -218,7 +287,7 @@ const hoursLeft = () => {
 }
 
 let hour = 10
-let endTime = 18
+let endTime = 17
 let min = 0
 let sec = 0
 const timer = () => {
